@@ -1,0 +1,8 @@
+.env
+credentials.json
+oauth.json
+downloads
+venv
+__pycache__
+token.pickle
+session_name.session

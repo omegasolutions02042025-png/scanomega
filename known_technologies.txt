@@ -1,0 +1,168 @@
+=== ЯЗЫКИ ПРОГРАММИРОВАНИЯ ===
+python : Python
+javascript : JavaScript
+typescript : TypeScript
+java : Java
+c : C
+c++ : C++
+c# : C#
+go : Go
+rust : Rust
+kotlin : Kotlin
+swift : Swift
+php : PHP
+ruby : Ruby
+scala : Scala
+r : R
+sql : SQL
+perl : Perl
+solidity : Solidity
+dart : Dart
+
+=== ФРЕЙМВОРКИ ===
+react : React
+angular : Angular
+vue.js : Vue.js
+next.js : Next.js
+redux : Redux
+tailwind css : Tailwind CSS
+bootstrap : Bootstrap
+express : Express
+nestjs : NestJS
+django : Django
+flask : Flask
+fastapi : FastAPI
+ruby on rails : Ruby on Rails
+laravel : Laravel
+symfony : Symfony
+spring boot : Spring Boot
+asp.net core : ASP.NET Core
+entity framework : Entity Framework
+gin : Gin
+actix-web : Actix-web
+axum : Axum
+flutter : Flutter
+react native : React Native
+tensorflow : TensorFlow
+pytorch : PyTorch
+keras : Keras
+scikit-learn : scikit-learn
+opencv : OpenCV
+langchain : LangChain
+apache spark : Apache Spark
+airflow : Airflow
+jest : Jest
+cypress : Cypress
+selenium : Selenium
+junit : JUnit
+pytest : PyTest
+graphql : GraphQL
+grpc : gRPC
+hardhat : Hardhat
+truffle : Truffle
+unity : Unity
+unreal engine : Unreal Engine
+coroutines : Coroutines
+dagger2 : Dagger2
+drift : Drift
+http client : Http Client
+retrofit2 : Retrofit2
+room orms : Room ORMs
+auth0_flutter : auth0_flutter
+bloc : bloc
+bloc_provider : bloc_provider
+change_notifier : change_notifier
+dio : dio
+equitable : equitable
+flutter_test : flutter_test
+freezed : freezed
+get_it : get_it
+hive : hive
+injectable : injectable
+provider : provider
+retrofit : retrofit
+flutter_svg : flutter_svg
+
+=== ТЕХНОЛОГИИ ===
+postgresql : PostgreSQL
+mysql : MySQL
+sqlite : SQLite
+oracle database : Oracle Database
+microsoft sql server : Microsoft SQL Server
+mongodb : MongoDB
+redis : Redis
+elasticsearch : Elasticsearch
+clickhouse : ClickHouse
+snowflake : Snowflake
+bigquery : BigQuery
+amazon redshift : Amazon Redshift
+apache kafka : Apache Kafka
+rabbitmq : RabbitMQ
+aws : AWS
+microsoft azure : Microsoft Azure
+google cloud platform : Google Cloud Platform
+docker : Docker
+kubernetes : Kubernetes
+helm : Helm
+terraform : Terraform
+ansible : Ansible
+github actions : GitHub Actions
+gitlab ci/cd : GitLab CI/CD
+jenkins : Jenkins
+prometheus : Prometheus
+grafana : Grafana
+elk stack : ELK Stack
+efk stack : EFK Stack
+nginx : Nginx
+apache http server : Apache HTTP Server
+oauth2 : OAuth2
+openid connect : OpenID Connect
+jwt : JWT
+maven : Maven
+gradle : Gradle
+npm : npm
+yarn : Yarn
+pip : pip
+cargo : Cargo
+composer : Composer
+power bi : Power BI
+tableau : Tableau
+qlik sense : Qlik Sense
+wordpress : WordPress
+drupal : Drupal
+magento : Magento
+shopify : Shopify
+salesforce : Salesforce
+sap : SAP
+1c:enterprise : 1C:Enterprise
+microsoft dynamics 365 : Microsoft Dynamics 365
+linux : Linux
+windows : Windows
+macos : macOS
+android : Android
+ios : iOS
+applinks : AppLinks
+ci/cd pipelines : CI/CD pipelines
+camera : Camera
+file/media picker : File/Media picker
+firebase crashlytics : Firebase crashlytics
+flutter localisation : Flutter localisation
+google maps : Google maps
+google maps clustering : Google maps clustering
+html editor : Html Editor
+i18n : I18n
+image editor : Image Editor
+location : Location
+material : Material
+onesignal : OneSignal
+openstreetmap : OpenStreetMap
+pdf viewer : Pdf viewer
+permission handling : Permission handling
+platform channels : Platform Channels
+push notifications : Push notifications
+restful api : RESTful api
+realm database : Realm database
+shared prefernces : Shared Prefernces
+video player : Video player
+cryptography : cryptography
+dart define : dart define
