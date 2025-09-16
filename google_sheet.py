@@ -7,6 +7,9 @@ import os
 from dotenv import load_dotenv
 from typing import List, Dict, Any, Optional
 import re
+import requests
+from gspread.utils import a1_to_rowcol, rowcol_to_a1
+from funcs import parse_vsebanki, parse_myfin
 
 
 load_dotenv()
@@ -948,23 +951,81 @@ def generate_and_save_mapping_variables(sheet_url=None, sheet_name="Resume_Datab
         return False
 
 
-# Пример использования функции search_and_extract_values
-if __name__ == "__main__":
-    # Пример: ищем значение 1500 в колонке B и извлекаем данные из колонок A, C, D
-    result = search_and_extract_values(
-        search_column='B',           # Колонка для поиска
-        search_value=1500.0,         # Искомое значение
-        extract_columns=['A', 'C', 'D'],  # Колонки для извлечения данных
-        worksheet_name="Resume_Database"  # Название листа
-    )
+
+
+def fill_column_with_sequential_numbers(
+    column_letter: str,
+    worksheet_name: str = "Свободные ресурсы на аутстафф",
+    start_row: int = 2,
+    value: int = 0,
+) -> bool:
+    """
+    Заполняет указанную колонку одним и тем же числом во всех строках листа.
+
+    Args:
+        column_letter: Буква колонки (например, 'G', 'I').
+        worksheet_name: Название листа в таблице.
+        start_row: Номер строки, с которой начинать заполнение (обычно 2, чтобы пропустить заголовки).
+        value: Число, которое нужно записать во все строки в колонке.
+
+    Returns:
+        True если успешно, иначе False.
+    """
+    try:
+        client = get_google_sheet_client()
+        if not client:
+            print("❌ Не удалось подключиться к Google Sheets")
+            return False
+
+        if SHEET_URL:
+            sheet = client.open_by_url(SHEET_URL)
+        else:
+            print("❌ URL Google таблицы не настроен")
+            return False
+
+        try:
+            worksheet = sheet.worksheet(worksheet_name)
+        except gspread.WorksheetNotFound:
+            print(f"❌ Лист '{worksheet_name}' не найден")
+            return False
+
+        all_values = worksheet.get_all_values()
+        if not all_values:
+            print("❌ Лист пуст")
+            return False
+
+        last_row = len(all_values)
+        if last_row < start_row:
+            print(f"⚠️ В листе нет строк для заполнения начиная с {start_row}")
+            return False
+
+        # Формируем значения: одно и то же число в каждой строке
+        values = [[value] for _ in range(start_row, last_row + 1)]
+
+        range_a1 = f"{column_letter}{start_row}:{column_letter}{last_row}"
+        worksheet.update(range_a1, values)
+        print(f"✅ Колонка {column_letter} заполнена значением {value} (строки {start_row}-{last_row}) на листе '{worksheet_name}'")
+        return True
+    except Exception as e:
+        print(f"❌ Ошибка при заполнении колонки: {e}")
+        return False
+
+import asyncio
+
+async def update_currency_sheet():
+    sheet_names = ['Рассчет ставки (штат/контракт) ЕС/США', 'Рассчет ставки (штат/контракт) СНГ','Рассчет ставки (Самозанятый) СНГ','Рассчет ставки (Самозанятый) ЕС/США','Рассчет ставки (ИП) СНГ','Рассчет ставки (ИП) ЕС/США']
+    curses = parse_vsebanki()
+    zp = parse_myfin()
+    for sheet_name in sheet_names:
+        for i in curses:
+            
+            if i == "USD":
+                fill_column_with_sequential_numbers("H", sheet_name, 2, curses[i])
+            elif i == "EUR":
+                fill_column_with_sequential_numbers("I", sheet_name, 2, curses[i])
+            elif i == "BYN":
+                fill_column_with_sequential_numbers("G", sheet_name, 2, curses[i])
+        fill_column_with_sequential_numbers("J", sheet_name, 2, zp)
+    await asyncio.sleep(86400)
     
-    if result:
-        print("\n=== РЕЗУЛЬТАТ ПОИСКА ===")
-        print(f"Строка: {result['found_row']}")
-        print(f"Найденное значение: {result['search_value_found']}")
-        print(f"Точное совпадение: {'Да' if result['is_exact_match'] else 'Нет'}")
-        print("Извлеченные данные:")
-        for col, value in result['extracted_values'].items():
-            print(f"  Колонка {col}: {value}")
-    else:
-        print("Данные не найдены")
+asyncio.run(update_currency_sheet())

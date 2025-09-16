@@ -7,6 +7,7 @@ from scan_handler import scan_router
 from add_info_handler import add_info_router
 import asyncio
 from teleton_client import client
+from google_sheet import update_currency_sheet
 
 load_dotenv()
 token = os.getenv('BOT_TOKEN')
@@ -37,5 +38,5 @@ async def main():
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    
+    asyncio.create_task(update_currency_sheet())
     asyncio.run(main())

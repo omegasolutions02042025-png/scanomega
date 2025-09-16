@@ -4,6 +4,7 @@ import docx
 import random
 import string
 from striprtf.striprtf import rtf_to_text
+from bs4 import BeautifulSoup
 
 async def process_pdf(file_path: str) -> str:
     """Извлекает текст из PDF"""
@@ -133,4 +134,42 @@ def build_row_symbols(resume_id: str, data: dict, MAP: dict) -> dict:
                 row[eng_name.lower()] = value
 
     return row
+
+
+import requests
+
+def parse_vsebanki():
+    
+    try:
+        url = "https://www.banki.ru/products/currency/cb/"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        usd_currency = soup.find('div', {'data-id': '840'}).find('div', {'class': 'FlexboxGridItem__sc-1crr98y-0 fQGtRy'}).find('div', {'class': 'Text__sc-vycpdy-0 gJTmbP'}).text.replace(" ", "").replace("₽", "").replace(",", ".")
+        eur_currency = soup.find('div', {'data-id': '978'}).find('div', {'class': 'FlexboxGridItem__sc-1crr98y-0 fQGtRy'}).find('div', {'class': 'Text__sc-vycpdy-0 gJTmbP'}).text.replace(" ", "").replace("₽", "").replace(",", ".")
+        byn_currency = soup.find('div', {'data-id': '933'}).find('div', {'class': 'FlexboxGridItem__sc-1crr98y-0 fQGtRy'}).find('div', {'class': 'Text__sc-vycpdy-0 gJTmbP'}).text.replace(" ", "").replace("₽", "").replace(",", ".")
+        
+        return {'USD': float(usd_currency), 'EUR': float(eur_currency), 'BYN': float(byn_currency)}
+    except Exception as e:
+        print(f"Error parsing vsebanki: {e}")
+        return None
+        
+
+
+def parse_myfin():
+    try:
+        url = "https://myfin.by/wiki/term/srednyaya-zarplata-v-belarusi"
+        response = requests.get(url)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        zp = soup.find('div', {'class': 'information-block__current-value x__current-value--mr'}).text.replace(" ", "").replace("рублей", "").replace(",", ".").replace("\n", "")
+        return float(zp)
+    except Exception as e:
+        print(f"Error parsing myfin: {e}")
+        return None
+
+
+print(parse_vsebanki())
+print(parse_myfin())
+
+
+
 
