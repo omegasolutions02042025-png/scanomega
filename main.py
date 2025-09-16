@@ -35,8 +35,9 @@ async def start(message: types.Message):
 
 async def main():
     #await client.start(phone=PHONE_NUMBER)
+    asyncio.create_task(update_currency_sheet())
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
-    asyncio.create_task(update_currency_sheet())
+    
     asyncio.run(main())

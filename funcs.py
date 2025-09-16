@@ -208,5 +208,5 @@ def parse_cb_rf():
         print(f"Error parsing cb_rf: {e}")
         return None
 
-print(parse_cb_rf())
+
 

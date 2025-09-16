@@ -1029,6 +1029,7 @@ async def update_currency_sheet():
                 fill_column_with_sequential_numbers("G", sheet_name, 2, curses[i])
                 await asyncio.sleep(3)
         fill_column_with_sequential_numbers("J", sheet_name, 2, zp)
+        await asyncio.sleep(3)
     await asyncio.sleep(86400)
     
 asyncio.run(update_currency_sheet())
