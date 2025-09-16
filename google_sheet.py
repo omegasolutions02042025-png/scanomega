@@ -1021,15 +1021,14 @@ async def update_currency_sheet():
             
             if i == "USD":
                 fill_column_with_sequential_numbers("H", sheet_name, 2, curses[i])
-                await asyncio.sleep(3)
+                await asyncio.sleep(1)
             elif i == "EUR":
                 fill_column_with_sequential_numbers("I", sheet_name, 2, curses[i])
-                await asyncio.sleep(3)
+                await asyncio.sleep(1)
             elif i == "BYN":
                 fill_column_with_sequential_numbers("G", sheet_name, 2, curses[i])
-                await asyncio.sleep(3)
+                await asyncio.sleep(1)
         fill_column_with_sequential_numbers("J", sheet_name, 2, zp)
-        await asyncio.sleep(3)
+        await asyncio.sleep(1)
     await asyncio.sleep(86400)
     
-asyncio.run(update_currency_sheet())
