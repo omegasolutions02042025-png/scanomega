@@ -211,13 +211,25 @@ def json_get_vse_banki():
         print("Не JSON, а HTML:", e)
 
 
+from playwright.sync_api import sync_playwright
 
-parse_myfin()
-parse_vsebanki()
+def playwright_get_vse_banki():
+    try:
+        with sync_playwright() as p:
+            browser = p.chromium.launch(headless=True)
+            page = browser.new_page()
+            url = "https://www.banki.ru/products/currency/cb/"
+            page.goto(url, wait_until="domcontentloaded", timeout=60000)
+            usd_currency = page.query_selector('div[data-id="840"]').query_selector('div.Text__sc-vycpdy-0.gJTmbP').text_content().replace(" ", "").replace("₽", "").replace(",", ".")
+            eur_currency = page.query_selector('div[data-id="978"]').query_selector('div.Text__sc-vycpdy-0.gJTmbP').text_content().replace(" ", "").replace("₽", "").replace(",", ".")
+            byn_currency = page.query_selector('div[data-id="933"]').query_selector('div.Text__sc-vycpdy-0.gJTmbP').text_content().replace(" ", "").replace("₽", "").replace(",", ".")
+            return {'USD': float(usd_currency), 'EUR': float(eur_currency), 'BYN': float(byn_currency)}
+    except Exception as e:
+        print(f"Error parsing vsebanki: {e}")
+        return None
+    
 
-
-json_get_vse_banki()
-
+print(playwright_get_vse_banki())
 
 
 
