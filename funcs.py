@@ -212,6 +212,9 @@ def json_get_vse_banki():
 
 
 
+parse_myfin()
+parse_vsebanki()
+
 
 json_get_vse_banki()
 
