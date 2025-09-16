@@ -142,7 +142,13 @@ def parse_vsebanki():
     
     try:
         url = "https://www.banki.ru/products/currency/cb/"
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122 Safari/537.36"}
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "Chrome/122.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Referer": "https://www.banki.ru/products/currency/cb/",
+            "X-Requested-With": "XMLHttpRequest"
+        }
         response = requests.get(url, headers=headers)
         print(response.url)       # вдруг редиректит на заглушку
         print(response.status_code)
@@ -163,7 +169,13 @@ def parse_vsebanki():
 def parse_myfin():
     try:
         url = "https://myfin.by/wiki/term/srednyaya-zarplata-v-belarusi"
-        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122 Safari/537.36"}
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "Chrome/122.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Referer": "https://www.banki.ru/products/currency/cb/",
+            "X-Requested-With": "XMLHttpRequest"
+        }
         response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.text, 'html.parser')
         zp = soup.find('div', {'class': 'information-block__current-value x__current-value--mr'}).text.replace(" ", "").replace("рублей", "").replace(",", ".").replace("\n", "")
@@ -173,8 +185,36 @@ def parse_myfin():
         return None
 
 
-print(parse_vsebanki())
-print(parse_myfin())
+def json_get_vse_banki():
+    
+
+    import requests
+
+    url = "https://www.banki.ru/products/currencyNodejsApi/getCbrCurrenciesResources/"
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                      "Chrome/122.0.0.0 Safari/537.36",
+        "Accept": "application/json, text/plain, */*",
+        "Referer": "https://www.banki.ru/products/currency/cb/",
+        "X-Requested-With": "XMLHttpRequest"
+    }
+
+    r = requests.get(url, headers=headers)
+    print("Content-Type:", r.headers.get("Content-Type"))
+    print(r.text[:700])  # первые 200 символов
+
+    try:
+        data = r.json()
+        for item in data:
+            print(f"{item['code']} ({item['name']}): {item['value']}")
+    except Exception as e:
+        print("Не JSON, а HTML:", e)
+
+
+
+
+json_get_vse_banki()
+
 
 
 
