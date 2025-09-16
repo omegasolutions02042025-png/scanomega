@@ -9,7 +9,7 @@ from typing import List, Dict, Any, Optional
 import re
 import requests
 from gspread.utils import a1_to_rowcol, rowcol_to_a1
-from funcs import playwright_get_vse_banki, parse_myfin
+from funcs import parse_cb_rf, parse_myfin
 
 
 load_dotenv()
@@ -1014,7 +1014,7 @@ import asyncio
 
 async def update_currency_sheet():
     sheet_names = ['Рассчет ставки (штат/контракт) ЕС/США', 'Рассчет ставки (штат/контракт) СНГ','Рассчет ставки (Самозанятый) СНГ','Рассчет ставки (Самозанятый) ЕС/США','Рассчет ставки (ИП) СНГ','Рассчет ставки (ИП) ЕС/США']
-    curses = playwright_get_vse_banki()
+    curses = parse_cb_rf()
     zp = parse_myfin()
     for sheet_name in sheet_names:
         for i in curses:

@@ -185,52 +185,28 @@ def parse_myfin():
         return None
 
 
-def json_get_vse_banki():
-    
 
-    import requests
 
-    url = "https://www.banki.ru/products/currencyNodejsApi/getCbrCurrenciesResources/"
-    headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0",
-        "Accept": "application/json, text/plain, */*",
-        "Referer": "https://www.banki.ru/products/currency/cb/",
-        "X-Requested-With": "XMLHttpRequest",
-        "Accept-Language": "ru,en;q=0.9"
-    }
-
-    r = requests.get(url, headers=headers)
-    print("Content-Type:", r.headers.get("Content-Type"))
-    print(r.text[:700])  # первые 200 символов
-
+def parse_cb_rf():
     try:
-        data = r.json()
-        for item in data:
-            print(f"{item['code']} ({item['name']}): {item['value']}")
+        url = 'https://www.cbr.ru/currency_base/daily/'
+        headers = {
+            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+                          "Chrome/122.0.0.0 Safari/537.36",
+            "Accept": "application/json, text/plain, */*",
+            "Referer": "https://www.banki.ru/products/currency/cb/",
+            "X-Requested-With": "XMLHttpRequest"
+        }
+        response = requests.get(url, headers=headers)
+        soup = BeautifulSoup(response.text, 'html.parser')
+        table = soup.find('table', {'class': 'data'}).find_all('tr')
+        usd = table[16].find_all('td')[-1].text.replace(" ", "").replace(",", ".")
+        eur = table[18].find_all('td')[-1].text.replace(" ", "").replace(",", ".")
+        byn = table[7].find_all('td')[-1].text.replace(" ", "").replace(",", ".")
+        return {'USD': float(usd), 'EUR': float(eur), 'BYN': float(byn)}
     except Exception as e:
-        print("Не JSON, а HTML:", e)
-
-
-from playwright.sync_api import sync_playwright
-
-def playwright_get_vse_banki():
-    try:
-        with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
-            page = browser.new_page()
-            url = "https://www.banki.ru/products/currency/cb/"
-            page.goto(url, wait_until="domcontentloaded", timeout=60000)
-            usd_currency = page.query_selector('div[data-id="840"]').query_selector('div.Text__sc-vycpdy-0.gJTmbP').text_content().replace(" ", "").replace("₽", "").replace(",", ".")
-            eur_currency = page.query_selector('div[data-id="978"]').query_selector('div.Text__sc-vycpdy-0.gJTmbP').text_content().replace(" ", "").replace("₽", "").replace(",", ".")
-            byn_currency = page.query_selector('div[data-id="933"]').query_selector('div.Text__sc-vycpdy-0.gJTmbP').text_content().replace(" ", "").replace("₽", "").replace(",", ".")
-            return {'USD': float(usd_currency), 'EUR': float(eur_currency), 'BYN': float(byn_currency)}
-    except Exception as e:
-        print(f"Error parsing vsebanki: {e}")
+        print(f"Error parsing cb_rf: {e}")
         return None
-    
 
-print(playwright_get_vse_banki())
-
-
-
+print(parse_cb_rf())
 
