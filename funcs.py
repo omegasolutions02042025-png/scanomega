@@ -192,11 +192,11 @@ def json_get_vse_banki():
 
     url = "https://www.banki.ru/products/currencyNodejsApi/getCbrCurrenciesResources/"
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                      "Chrome/122.0.0.0 Safari/537.36",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:122.0) Gecko/20100101 Firefox/122.0",
         "Accept": "application/json, text/plain, */*",
         "Referer": "https://www.banki.ru/products/currency/cb/",
-        "X-Requested-With": "XMLHttpRequest"
+        "X-Requested-With": "XMLHttpRequest",
+        "Accept-Language": "ru,en;q=0.9"
     }
 
     r = requests.get(url, headers=headers)
