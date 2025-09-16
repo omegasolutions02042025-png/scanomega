@@ -142,7 +142,8 @@ def parse_vsebanki():
     
     try:
         url = "https://www.banki.ru/products/currency/cb/"
-        response = requests.get(url)
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122 Safari/537.36"}
+        response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.text, 'html.parser')
         usd_currency = soup.find('div', {'data-id': '840'}).find('div', {'class': 'FlexboxGridItem__sc-1crr98y-0 fQGtRy'}).find('div', {'class': 'Text__sc-vycpdy-0 gJTmbP'}).text.replace(" ", "").replace("₽", "").replace(",", ".")
         eur_currency = soup.find('div', {'data-id': '978'}).find('div', {'class': 'FlexboxGridItem__sc-1crr98y-0 fQGtRy'}).find('div', {'class': 'Text__sc-vycpdy-0 gJTmbP'}).text.replace(" ", "").replace("₽", "").replace(",", ".")
@@ -158,7 +159,8 @@ def parse_vsebanki():
 def parse_myfin():
     try:
         url = "https://myfin.by/wiki/term/srednyaya-zarplata-v-belarusi"
-        response = requests.get(url)
+        headers = {"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/122 Safari/537.36"}
+        response = requests.get(url, headers=headers)
         soup = BeautifulSoup(response.text, 'html.parser')
         zp = soup.find('div', {'class': 'information-block__current-value x__current-value--mr'}).text.replace(" ", "").replace("рублей", "").replace(",", ".").replace("\n", "")
         return float(zp)
