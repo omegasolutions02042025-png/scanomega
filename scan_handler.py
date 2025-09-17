@@ -536,7 +536,7 @@ async def process_single_resume(message: types.Message, document: types.Document
     
     
     for k, v in data_for_table.items():
-        rint(f"Добавление {v} в Google таблицу...")
+        print(f"Добавление {v} в Google таблицу...")
         success = await add_data_to_worksheet(v, worksheet_name=k)
         if success:
             print(f"📊 {k} добавлено в Google таблицу!")
