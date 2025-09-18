@@ -336,13 +336,13 @@ async def salary_add(message: types.Message, state: FSMContext):
         await message.answer('Неверная валюта')
         return
     
-    contract_data_sng = search_and_extract_values(search_col, value, ["M",'N','O','P'], "Рассчет ставки (штат/контракт) СНГ")
-    ip_data_sng = search_and_extract_values(search_col, value, ["M",'N','O','P'], "Рассчет ставки (ИП) СНГ")
-    samozanyatii_data_sng = search_and_extract_values(search_col, value, ["M",'N','O','P'], "Рассчет ставки (Самозанятый) СНГ")
+    contract_data_sng = search_and_extract_values(search_col, value, ["M",'N','O','P'], "Расчет ставки (штат/контракт) СНГ")
+    ip_data_sng = search_and_extract_values(search_col, value, ["M",'N','O','P'], "Расчет ставки (ИП) СНГ")
+    samozanyatii_data_sng = search_and_extract_values(search_col, value, ["M",'N','O','P'], "Расчет ставки (Самозанятый) СНГ")
             
-    contract_data_es = search_and_extract_values(search_col, value, ['M','N','O', 'P'], "Рассчет ставки (штат/контракт) ЕС/США")
-    ip_data_es = search_and_extract_values(search_col, value, ["M",'N','O','P'], "Рассчет ставки (ИП) ЕС/США")
-    samozanyatii_data_es = search_and_extract_values(search_col, value, ["M",'N','O','P'], "Рассчет ставки (Самозанятый) ЕС/США")
+    contract_data_es = search_and_extract_values(search_col, value, ['M','N','O', 'P'], "Расчет ставки (штат/контракт) ЕС/США")
+    ip_data_es = search_and_extract_values(search_col, value, ["M",'N','O','P'], "Расчет ставки (ИП) ЕС/США")
+    samozanyatii_data_es = search_and_extract_values(search_col, value, ["M",'N','O','P'], "Расчет ставки (Самозанятый) ЕС/США")
     print(contract_data_es)
     print(ip_data_es)
     print(samozanyatii_data_es)
