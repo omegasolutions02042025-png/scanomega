@@ -121,16 +121,17 @@ async def start_processing(message: types.Message, state: FSMContext):
     await message.answer(f"🤖 Найдено {len(files)} резюме. Начинаю обработку...")
 
     for file_name in files:
-        local_file_path = os.path.join(folder, file_name)
-        await process_single_resume_from_disk(message, local_file_path, file_name)
+        try:
+            local_file_path = os.path.join(folder, file_name)
+            await process_single_resume_from_disk(message, local_file_path, file_name)
+            os.remove(local_file_path)
+        except:
+            await message.answer(f"❌ Не удалось обработать файл {file_name}")
+            os.remove(local_file_path)
 
     await message.answer("✅ Обработка завершена.")
     # Чистим папку
-    for file_name in files:
-        try:
-            os.remove(os.path.join(folder, file_name))
-        except:
-            pass
+    os.remove(folder)
 
     await state.set_state(Scan.waiting_for_resume)
 
@@ -563,7 +564,7 @@ async def process_single_resume_from_disk(message: types.Message, local_file_pat
     
     
     # Сообщение об успехе будет отправлено в конце цикла
-    await message.answer(f"✅ Резюме '{document.file_name}' успешно добавлено!")
+    await message.answer(f"✅ Резюме '{file_name}' успешно добавлено!")
 
 
 @scan_router.callback_query(F.data == 'delete_record')
