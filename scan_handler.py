@@ -24,6 +24,7 @@ ADMIN_ID = int(os.getenv('ADMIN_ID'))
 
 class Scan(StatesGroup):
     waiting_for_resume = State()
+    confirm_add_more = State()
     processing_files = State() # Новый стейт для блокировки во время обработки
 
 class DeleteRecord(StatesGroup):
@@ -53,75 +54,95 @@ async def send_welcome(callback: types.CallbackQuery, state: FSMContext):
 #         await message.answer(f"❌ Резюме с ID {id} не найдено!")
         
 
+
 @scan_router.message(F.document, Scan.waiting_for_resume)
-async def handle_resume_document(message: types.Message, state: FSMContext):
-    data = await state.get_data()
-    # Получаем текущий список документов или создаем новый
-    documents = data.get("documents", [])
-    documents.append(message.document)
-
-    # Если это первый документ в серии, запускаем таймер
-    if len(documents) == 1:
-        await state.update_data(documents=documents)
-        # Ждем 2 секунды, чтобы собрать все файлы из сообщения
-        asyncio.create_task(process_files_after_delay(message, state))
-    else:
-        # Просто обновляем список документов в состоянии
-        await state.update_data(documents=documents)
+async def handle_document(message: types.Message, state: FSMContext):
+    """Ловим документ и сохраняем его"""
+    await save_document(message)
 
 
-async def process_files_after_delay(message: types.Message, state: FSMContext):
-    await asyncio.sleep(2)  # Даем время на сбор всех документов
+@scan_router.message(F.media_group_id, Scan.waiting_for_resume)
+async def handle_album(message: types.Message, state: FSMContext):
+    """Ловим альбом с несколькими документами""" 
+    document = message.document
+    if document:
+        await save_document(message, show_question=False)
 
-    data = await state.get_data()
-    documents = data.get("documents", [])
-    
-    # Если документов нет, выходим
-    if not documents:
-        return
-
-    # Переходим в состояние обработки, чтобы не принимать новые файлы
-    await state.set_state(Scan.processing_files)
-    
-    total_files = len(documents)
-    await message.answer(f"🤖 Принято {total_files} резюме. Начинаю обработку...")
-
-    processed_count = 0
-    error_count = 0
-
-    for document in documents:
-        try:
-            await process_single_resume(message, document)
-            processed_count += 1
-        except Exception as e:
-            error_count += 1
-            error_msg = str(e)
-            if len(error_msg) > 3000:  # Ограничиваем длину сообщения об ошибке
-                error_msg = error_msg[:3000] + "..."
-            await message.answer(f"❌ Ошибка при обработке файла `{document.file_name}`: {error_msg}")
-    
-    summary_message = f"✨ Обработка завершена!\n\n✅ Успешно: {processed_count}\n❌ С ошибками: {error_count}"
-    await message.answer(summary_message, reply_markup=await start_kb())
-
-    # Сбрасываем список документов и возвращаемся в состояние ожидания
-    await state.update_data(documents=[])
-    await state.set_state(Scan.waiting_for_resume)
-    await message.answer("✅ Готово! Можете отправить следующую пачку резюме или вернуться в меню.")
+    # Чтобы не спрашивать 10 раз подряд, спросим только в конце альбома
+    # Последнее сообщение в альбоме содержит media_group_id
+    if message.media_group_id:
+        await message.answer(
+            "Хотите добавить ещё файлы?", reply_markup=get_yes_no_kb()
+        )
+        await state.set_state(Scan.confirm_add_more)
 
 
-async def process_single_resume(message: types.Message, document: types.Document):
+async def save_document(message: types.Message, show_question=True):
+    """Сохраняем один файл"""
+    document = message.document
     if not document:
-        
-        await message.answer("Отправьте резюме в формате PDF/DOCX/RTF/TXT")
         return
-    file_info = await bot.get_file(document.file_id)
+
+    file_info = await message.bot.get_file(document.file_id)
     file_path = file_info.file_path
     file_name = document.file_name
-    resume_id = generate_random_id()
-    # сохраняем файл локально
-    local_file_path = f"downloads/{file_name}"
+
     os.makedirs("downloads", exist_ok=True)
-    await bot.download_file(file_path, destination=local_file_path)
+    local_file_path = os.path.join("downloads", file_name)
+    await message.bot.download_file(file_path, destination=local_file_path)
+
+    print(f"📥 Файл сохранён: {local_file_path}")
+    await message.answer(f"📥 Файл `{file_name}` сохранён.")
+
+    if show_question:
+        await message.answer("Хотите добавить ещё файлы?", reply_markup=get_yes_no_kb())
+
+
+# --- Кнопка «Да» ---
+@scan_router.callback_query(F.data == "add_more_yes")
+async def cb_add_more_yes(callback: types.CallbackQuery, state: FSMContext):
+    await state.set_state(Scan.waiting_for_resume)
+    await callback.message.answer("📤 Отправьте ещё резюме.")
+    await callback.answer()
+
+
+# --- Кнопка «Нет» ---
+@scan_router.callback_query(F.data == "add_more_no")
+async def cb_add_more_no(callback: types.CallbackQuery, state: FSMContext):
+    await callback.answer()
+    await start_processing(callback.message, state)
+
+
+async def start_processing(message: types.Message, state: FSMContext):
+    folder = "downloads"
+    os.makedirs(folder, exist_ok=True)
+    files = os.listdir(folder)
+
+    if not files:
+        await message.answer("⚠️ В папке нет файлов для обработки.")
+        return
+
+    await state.set_state(Scan.processing_files)
+    await message.answer(f"🤖 Найдено {len(files)} резюме. Начинаю обработку...")
+
+    for file_name in files:
+        local_file_path = os.path.join(folder, file_name)
+        await process_single_resume_from_disk(message, local_file_path, file_name)
+
+    await message.answer("✅ Обработка завершена.")
+    # Чистим папку
+    for file_name in files:
+        try:
+            os.remove(os.path.join(folder, file_name))
+        except:
+            pass
+
+    await state.set_state(Scan.waiting_for_resume)
+
+
+
+async def process_single_resume_from_disk(message: types.Message, local_file_path: str, file_name: str):
+    resume_id = generate_random_id()
     ext = file_name.split(".")[-1].lower()
 
     if ext == "pdf":
@@ -151,12 +172,12 @@ async def process_single_resume(message: types.Message, document: types.Document
     if not resume_data:
         message.answer('Не удалось извлечь данные')
         return
-    first_name = resume_data.get("firstName", {}).get('На русском') if resume_data.get("firstName") else None
-    first_name_en = resume_data.get("firstName", {}).get('На английском') if resume_data.get("firstName") else None
-    last_name = resume_data.get("lastName", {}).get('На русском') if resume_data.get("lastName") else None
-    last_name_en = resume_data.get("lastName", {}).get('На английском') if resume_data.get("lastName") else None
-    patronymic = resume_data.get("patronymic", {}).get('На русском') if resume_data.get("patronymic") else None
-    patronymic_en = resume_data.get("patronymic", {}).get('На английском') if resume_data.get("patronymic") else None
+    first_name = resume_data.get("firstName", {}).get('ru') if resume_data.get("firstName") else None
+    first_name_en = resume_data.get("firstName", {}).get('en') if resume_data.get("firstName") else None
+    last_name = resume_data.get("lastName", {}).get('ru') if resume_data.get("lastName") else None
+    last_name_en = resume_data.get("lastName", {}).get('en') if resume_data.get("lastName") else None
+    patronymic = resume_data.get("patronymic", {}).get('ru') if resume_data.get("patronymic") else None
+    patronymic_en = resume_data.get("patronymic", {}).get('en') if resume_data.get("patronymic") else None
     date_of_birth = resume_data.get("dateOfBirth")
     languages = resume_data.get("languages")
     if first_name is None and first_name_en is None:
@@ -235,10 +256,10 @@ async def process_single_resume(message: types.Message, document: types.Document
     
     
     
-    first = resume_data.get("firstName")['На русском']
-    last = resume_data.get("lastName")['На русском']
-    first_en = resume_data.get("firstName")['На английском']
-    last_en = resume_data.get("lastName")['На английском']
+    first = resume_data.get("firstName").get('ru')
+    last = resume_data.get("lastName").get('ru')
+    first_en = resume_data.get("firstName").get('en')
+    last_en = resume_data.get("lastName").get('en')
     
 
     if first and last:

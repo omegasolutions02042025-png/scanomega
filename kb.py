@@ -71,3 +71,10 @@ async def add_contacts_confirm_kb():
     kb.adjust(1)
     return kb.as_markup()
     
+    
+def get_yes_no_kb():
+    kb = InlineKeyboardBuilder()
+    kb.button(text="✅ Да", callback_data="add_more_yes")
+    kb.button(text="❌ Нет", callback_data="add_more_no")
+    kb.adjust(2)
+    return kb.as_markup()
