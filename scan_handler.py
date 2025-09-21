@@ -136,7 +136,7 @@ async def start_processing(message: types.Message, state: FSMContext):
 
 
 
-async def process_single_resume_from_disk(message: types.Message, local_file_path: str, file_name: str):
+async def process_single_resume_from_disk(message: types.Message, local_file_path: str, file_name: str, rekruter_username: str):
     resume_id = generate_random_id()
     ext = file_name.split(".")[-1].lower()
 
@@ -160,7 +160,7 @@ async def process_single_resume_from_disk(message: types.Message, local_file_pat
         await message.answer("❌ Поддерживаются только PDF, DOCX, RTF и TXT файлы")
         return
     
-    rekruter_username = message.from_user.username
+    
     user_id = message.from_user.id
     
     resume_data = process_resume(text, file_name)
@@ -251,10 +251,10 @@ async def process_single_resume_from_disk(message: types.Message, local_file_pat
     
     
     
-    first = resume_data.get("firstName").get('ru')
-    last = resume_data.get("lastName").get('ru')
-    first_en = resume_data.get("firstName").get('en')
-    last_en = resume_data.get("lastName").get('en')
+    first = resume_data.get("firstName" or {}).get('ru') or None
+    last = resume_data.get("lastName" or {}).get('ru') or None
+    first_en = resume_data.get("firstName" or {}).get('en') or None
+    last_en = resume_data.get("lastName" or {}).get('en') or None
     
 
     if first and last:
@@ -438,24 +438,27 @@ async def process_single_resume_from_disk(message: types.Message, local_file_pat
     
     data_for_resume_sheet = {
         "resume_id": resume_id,
-        "last_name": (resume_data.get("lastName") or {}).get("ru") or (resume_data.get("lastName") or {}).get("en"),
-        "first_name": (resume_data.get("firstName") or {}).get("ru") or (resume_data.get("firstName") or {}).get("en"),
-        "middle_name": (resume_data.get("patronymic") or {}).get("ru") or (resume_data.get("patronymic") or {}).get("en"),
+        "last_name": (resume_data.get("lastName") or {}).get("ru") or (resume_data.get("lastName") or {}).get("en") or "не указано",
+        "first_name": (resume_data.get("firstName") or {}).get("ru") or (resume_data.get("firstName") or {}).get("en") or "не указано",
+        "middle_name": (resume_data.get("patronymic") or {}).get("ru") or (resume_data.get("patronymic") or {}).get("en") or "не указано",
         "specialization": ", ".join([k for k, v in resume_data.get("specialization", {}).items() if v]),
-        "date_of_birth": resume_data.get("dateOfBirth"),
-        "location" : ", ".join(filter(None, [
-            resume_data.get('city').get("ru") if isinstance(resume_data.get('city'), str) else ", ".join(resume_data.get('city', {}).get("ru")) if resume_data.get('city') else None,
-            resume_data.get('location').get("ru") if isinstance(resume_data.get('location'), str) else ", ".join(resume_data.get('location', {}).get("ru")) if resume_data.get('location') else None
+        "date_of_birth": resume_data.get("dateOfBirth") or "не указано",
+        "location": ", ".join(filter(None, [
+            ", ".join(resume_data.get("city", {}).get("ru")) if isinstance(resume_data.get("city", {}).get("ru"), list)
+            else resume_data.get("city", {}).get("ru") if resume_data.get("city") else None,
+
+            ", ".join(resume_data.get("location", {}).get("ru")) if isinstance(resume_data.get("location", {}).get("ru"), list)
+            else resume_data.get("location", {}).get("ru") if resume_data.get("location") else None,
         ])) or "не указано",
-        "grade": ", ".join([k for k, v in resume_data.get("grade", {}).items() if v]),
-        "total_experience": resume_data.get("totalExperience"),
-        "special_experience": resume_data.get("specialExperience"),
-        'program_languages': ", ".join([k for k, v in resume_data.get('programmingLanguages', {}).items() if v]),
-        'frameworks': ", ".join([k for k, v in resume_data.get('frameworks', {}).items() if v]),
-        'technologies': ", ".join([k for k, v in resume_data.get('technologies', {}).items() if v]),
-        'project_industries' : ", ".join([k for k, v in resume_data.get('projectIndustries', {}).items() if v]),
-        'languague' : ", ".join([f"{k}: {v}" for k, v in resume_data.get('languages', {}).items() if v and v != False]),
-        'portfolio' : ", ".join([k for k, v in resume_data.get('portfolio', {}).items() if v]),
+        "grade": ", ".join([k for k, v in resume_data.get("grade", {}).items() if v]) or "не указано",
+        "total_experience": resume_data.get("totalExperience") or "не указано",
+        "special_experience": resume_data.get("specialExperience") or "не указано",
+        'program_languages': ", ".join([k for k, v in resume_data.get('programmingLanguages', {}).items() if v]) or "не указано",
+        'frameworks': ", ".join([k for k, v in resume_data.get('frameworks', {}).items() if v]) or "не указано",
+        'technologies': ", ".join([k for k, v in resume_data.get('technologies', {}).items() if v]) or "не указано",
+        'project_industries' : ", ".join([k for k, v in resume_data.get('projectIndustries', {}).items() if v]) or "не указано",
+        'languague' : ", ".join([f"{k}: {v}" for k, v in resume_data.get('languages', {}).items() if v and v != False]) or "не указано",
+        'portfolio' : ", ".join([k for k, v in resume_data.get('portfolio', {}).items() if v]) or "не указано",
         'contacts': '\n'.join(filter(None, [
             resume_data.get('contacts', {}).get('phone'),
             resume_data.get('contacts', {}).get('email'),
@@ -479,12 +482,12 @@ async def process_single_resume_from_disk(message: types.Message, local_file_pat
             resume_data.get('contacts', {}).get('reddit'),
             resume_data.get('contacts', {}).get('stackoverflow'),
             resume_data.get('contacts', {}).get('habrCareer')
-        ])),
+        ])) or "не указано",
         
-        "salary_expectations": salary_expectations,
-        "rate_sng": rate_sng_for_main_table,
-        "rate_eur": rate_eur_for_main_table,
-        "availability": ", ".join([k for k, v in resume_data.get('availability', {}).items() if v]) if isinstance(resume_data.get('availability'), dict) else resume_data.get('availability', ''),
+        "salary_expectations": salary_expectations or "не указано",
+        "rate_sng": rate_sng_for_main_table or "не указано",
+        "rate_eur": rate_eur_for_main_table or "не указано",
+        "availability": ", ".join([k for k, v in resume_data.get('availability', {}).items() if v]) if isinstance(resume_data.get('availability'), dict) else resume_data.get('availability', '') or "не указано",
         "date_of_exit": ".",
         'resume_url' : file_url,
         'new_resume_url_russian' : new_resume_url_russian or '-',
