@@ -168,7 +168,7 @@ async def process_single_resume_from_disk(message: types.Message, local_file_pat
     rekruter_username = message.from_user.username
     user_id = message.from_user.id
     
-    resume_data = process_resume(text, document.file_name)
+    resume_data = process_resume(text, file_name)
     if not resume_data:
         message.answer('Не удалось извлечь данные')
         return
@@ -566,7 +566,7 @@ async def process_single_resume_from_disk(message: types.Message, local_file_pat
         else:
             await message.answer(f"⚠️ Не удалось добавить {k} в Google таблицу. Проверьте настройки.")
     
-    os.remove(local_file_path)
+    
     # Сообщение об успехе будет отправлено в конце цикла
     await message.answer(f"✅ Резюме '{document.file_name}' успешно добавлено!")
 
