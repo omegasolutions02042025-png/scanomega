@@ -132,9 +132,6 @@ async def start_processing(message: types.Message, state: FSMContext):
                 os.remove(local_file_path)
 
     await message.answer("✅ Обработка завершена.")
-    # Чистим папку
-    os.remove(folder)
-
     await state.set_state(Scan.waiting_for_resume)
 
 
