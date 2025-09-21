@@ -125,7 +125,7 @@ async def start_processing(message: types.Message, state: FSMContext):
         try:
             await process_single_resume_from_disk(message, local_file_path, file_name)
         except Exception as e:
-            await message.answer(f"❌ Не удалось обработать файл {file_name}: {str(e)}")
+            await message.answer(f"❌ Ошибка при обработке {file_name}: {str(e)}")
         finally:
             # Безопасное удаление файла
             if os.path.exists(local_file_path):
