@@ -119,11 +119,11 @@ async def start_processing(message: types.Message, state: FSMContext):
 
     await state.set_state(Scan.processing_files)
     await message.answer(f"🤖 Найдено {len(files)} резюме. Начинаю обработку...")
-
+    rekruter_username = message.from_user.username
     for file_name in files:
         local_file_path = os.path.join(folder, file_name)
         try:
-            await process_single_resume_from_disk(message, local_file_path, file_name)
+            await process_single_resume_from_disk(message, local_file_path, file_name, rekruter_username)
         except Exception as e:
             await message.answer(f"❌ Ошибка при обработке {file_name}: {str(e)}")
         finally:
