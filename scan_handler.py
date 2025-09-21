@@ -75,7 +75,7 @@ async def save_document(message: types.Message, state: FSMContext):
     local_file_path = os.path.join("downloads", file_name)
     await bot.download_file(file_path, destination=local_file_path)
 
-    await message.answer(f"📥 Файл `{file_name}` сохранён.")
+    
 
     # --- Обработка media_group_id ---
     data = await state.get_data()
@@ -83,10 +83,12 @@ async def save_document(message: types.Message, state: FSMContext):
         if data.get("last_media_group_id") != message.media_group_id:
             # Сохраняем media_group_id и спрашиваем только один раз
             await state.update_data(last_media_group_id=message.media_group_id)
+            await message.answer(f"📥 Файлы сохранены.")
             await message.answer("Хотите добавить ещё файлы?", reply_markup=get_yes_no_kb())
             await state.set_state(Scan.confirm_add_more)
     else:
         # Для одиночного файла
+        await message.answer(f"📥 Файл сохранён.")
         await message.answer("Хотите добавить ещё файлы?", reply_markup=get_yes_no_kb())
         await state.set_state(Scan.confirm_add_more)
 
