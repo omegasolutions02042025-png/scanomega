@@ -502,10 +502,10 @@ async def process_single_resume_from_disk(message: types.Message, local_file_pat
 
     data_for_location_sheet = {
         "resume_id": resume_id,
-        "location_ru": resume_data.get("location", {}).get("ru") or "❌",
-        "city_ru": resume_data.get("city", {}).get("ru") or "❌",
-        "location_en": resume_data.get("location", {}).get("en") or "❌",
-        "city_en": resume_data.get("city", {}).get("en") or "❌",
+        "location_ru": (resume_data.get("location") or {}).get("ru") or "❌",
+        "city_ru": (resume_data.get("city") or {}).get("ru") or "❌",
+        "location_en": (resume_data.get("location") or {}).get("en") or "❌",
+        "city_en": (resume_data.get("city") or {}).get("en") or "❌",
     }
     
     data_for_grade_sheet = build_row_symbols(resume_id, resume_data.get("grade"), GRADE_MAP)
