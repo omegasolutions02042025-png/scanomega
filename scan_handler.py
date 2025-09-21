@@ -121,13 +121,15 @@ async def start_processing(message: types.Message, state: FSMContext):
     await message.answer(f"🤖 Найдено {len(files)} резюме. Начинаю обработку...")
 
     for file_name in files:
+        local_file_path = os.path.join(folder, file_name)
         try:
-            local_file_path = os.path.join(folder, file_name)
             await process_single_resume_from_disk(message, local_file_path, file_name)
-            os.remove(local_file_path)
-        except:
-            await message.answer(f"❌ Не удалось обработать файл {file_name}")
-            os.remove(local_file_path)
+        except Exception as e:
+            await message.answer(f"❌ Не удалось обработать файл {file_name}: {str(e)}")
+        finally:
+            # Безопасное удаление файла
+            if os.path.exists(local_file_path):
+                os.remove(local_file_path)
 
     await message.answer("✅ Обработка завершена.")
     # Чистим папку
