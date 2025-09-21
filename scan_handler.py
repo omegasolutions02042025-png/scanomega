@@ -58,44 +58,37 @@ async def send_welcome(callback: types.CallbackQuery, state: FSMContext):
 @scan_router.message(F.document, Scan.waiting_for_resume)
 async def handle_document(message: types.Message, state: FSMContext):
     """Ловим документ и сохраняем его"""
-    await save_document(message)
+    await save_document(message, state)
 
 
-@scan_router.message(F.media_group_id, Scan.waiting_for_resume)
-async def handle_album(message: types.Message, state: FSMContext):
-    """Ловим альбом с несколькими документами""" 
-    document = message.document
-    if document:
-        await save_document(message, show_question=False)
-
-    # Чтобы не спрашивать 10 раз подряд, спросим только в конце альбома
-    # Последнее сообщение в альбоме содержит media_group_id
-    if message.media_group_id:
-        await message.answer(
-            "Хотите добавить ещё файлы?", reply_markup=get_yes_no_kb()
-        )
-        await state.set_state(Scan.confirm_add_more)
-
-
-async def save_document(message: types.Message, show_question=True):
-    """Сохраняем один файл"""
+async def save_document(message: types.Message, state: FSMContext):
     document = message.document
     if not document:
+        await message.answer("Отправьте резюме в формате PDF/DOCX/RTF/TXT")
         return
 
-    file_info = await message.bot.get_file(document.file_id)
+    file_info = await bot.get_file(document.file_id)
     file_path = file_info.file_path
     file_name = document.file_name
 
     os.makedirs("downloads", exist_ok=True)
     local_file_path = os.path.join("downloads", file_name)
-    await message.bot.download_file(file_path, destination=local_file_path)
+    await bot.download_file(file_path, destination=local_file_path)
 
-    print(f"📥 Файл сохранён: {local_file_path}")
     await message.answer(f"📥 Файл `{file_name}` сохранён.")
 
-    if show_question:
+    # --- Обработка media_group_id ---
+    data = await state.get_data()
+    if message.media_group_id:
+        if data.get("last_media_group_id") != message.media_group_id:
+            # Сохраняем media_group_id и спрашиваем только один раз
+            await state.update_data(last_media_group_id=message.media_group_id)
+            await message.answer("Хотите добавить ещё файлы?", reply_markup=get_yes_no_kb())
+            await state.set_state(Scan.confirm_add_more)
+    else:
+        # Для одиночного файла
         await message.answer("Хотите добавить ещё файлы?", reply_markup=get_yes_no_kb())
+        await state.set_state(Scan.confirm_add_more)
 
 
 # --- Кнопка «Да» ---
