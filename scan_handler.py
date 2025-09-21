@@ -438,9 +438,9 @@ async def process_single_resume_from_disk(message: types.Message, local_file_pat
     
     data_for_resume_sheet = {
         "resume_id": resume_id,
-        "last_name": resume_data.get("lastName", {}).get("ru") if resume_data.get("lastName", {}).get("ru") else resume_data.get("lastName", {}).get("en"),
-        "first_name": resume_data.get("firstName", {}).get("ru") if resume_data.get("firstName", {}).get("ru") else resume_data.get("firstName", {}).get("en"),
-        "middle_name": resume_data.get("patronymic", {}).get("ru") if resume_data.get("patronymic", {}).get("ru") else resume_data.get("patronymic", {}).get("en"),
+        "last_name": resume_data.get("lastName", {}).get("ru") if resume_data.get("lastName", {}).get("ru") else resume_data.get("lastName", {}).get("en") if resume_data.get("lastName", {}).get("en") else None,
+        "first_name": resume_data.get("firstName", {}).get("ru") if resume_data.get("firstName", {}).get("ru") else resume_data.get("firstName", {}).get("en") if resume_data.get("firstName", {}).get("en") else None,
+        "middle_name": resume_data.get("patronymic", {}).get("ru") if resume_data.get("patronymic", {}).get("ru") else resume_data.get("patronymic", {}).get("en") if resume_data.get("patronymic", {}).get("en") else None,
         "specialization": ", ".join([k for k, v in resume_data.get("specialization", {}).items() if v]),
         "date_of_birth": resume_data.get("dateOfBirth"),
         "location" : ", ".join(filter(None, [
