@@ -422,14 +422,14 @@ async def process_single_resume(message: types.Message, document: types.Document
     
     data_for_resume_sheet = {
         "resume_id": resume_id,
-        "last_name": resume_data.get("lastName", {}).get("На русском") or resume_data.get("lastName", {}).get("На английском"),
-        "first_name": resume_data.get("firstName", {}).get("На русском") or resume_data.get("firstName", {}).get("На английском"),
-        "middle_name": (resume_data.get("patronymic") or {}).get("На русском") or (resume_data.get("patronymic") or {}).get("На английском"),
-        "specialization": resume_data.get("specialization"),
+        "last_name": resume_data.get("lastName", {}).get("ru") if resume_data.get("lastName", {}).get("ru") else resume_data.get("lastName", {}).get("en"),
+        "first_name": resume_data.get("firstName", {}).get("ru") if resume_data.get("firstName", {}).get("ru") else resume_data.get("firstName", {}).get("en"),
+        "middle_name": resume_data.get("patronymic", {}).get("ru") if resume_data.get("patronymic", {}).get("ru") else resume_data.get("patronymic", {}).get("en"),
+        "specialization": ", ".join([k for k, v in resume_data.get("specialization", {}).items() if v]),
         "date_of_birth": resume_data.get("dateOfBirth"),
         "location" : ", ".join(filter(None, [
-            resume_data.get('city') if isinstance(resume_data.get('city'), str) else ", ".join(resume_data.get('city', [])) if resume_data.get('city') else None,
-            resume_data.get('location') if isinstance(resume_data.get('location'), str) else ", ".join(resume_data.get('location', [])) if resume_data.get('location') else None
+            resume_data.get('city').get("ru") if isinstance(resume_data.get('city'), str) else ", ".join(resume_data.get('city', {}).get("ru")) if resume_data.get('city') else None,
+            resume_data.get('location').get("ru") if isinstance(resume_data.get('location'), str) else ", ".join(resume_data.get('location', {}).get("ru")) if resume_data.get('location') else None
         ])) or "не указано",
         "grade": ", ".join([k for k, v in resume_data.get("grade", {}).items() if v]),
         "total_experience": resume_data.get("totalExperience"),
@@ -482,12 +482,14 @@ async def process_single_resume(message: types.Message, document: types.Document
     
     data_for_surname_sheet = build_row(resume_id, resume_data.get("lastName"), SURNAME_MAP)
     
-    data_for_roles_sheet = build_row_symbols(resume_id, resume_data.get("roles"), ROLES_MAP)
-    
+    data_for_roles_sheet = build_row_symbols(resume_id, resume_data.get("specialization"), ROLES_MAP)
+
     data_for_location_sheet = {
         "resume_id": resume_id,
-        "location": resume_data.get("location"),
-        "city": resume_data.get("city"),
+        "location_ru": resume_data.get("location", {}).get("ru") or "❌",
+        "city_ru": resume_data.get("city", {}).get("ru") or "❌",
+        "location_en": resume_data.get("location", {}).get("en") or "❌",
+        "city_en": resume_data.get("city", {}).get("en") or "❌",
     }
     
     data_for_grade_sheet = build_row_symbols(resume_id, resume_data.get("grade"), GRADE_MAP)

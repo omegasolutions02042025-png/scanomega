@@ -37,60 +37,84 @@ def process_resume(text: str, file_name: str = "") -> dict | None:
     availability_values = ', '.join(f'"{v}"' for v in AVAILABILITY_MAP.values())
     contacts_values = ', '.join(f'"{v}"' for v in CONTACTS_MAP.values())
     
-    prompt = f"""Ваша задача — извлечь указанные данные из текста резюме и представить их в формате JSON. 
+    prompt = f"""Твоя задача — выступить в роли умного парсера резюме. Ты должен извлечь информацию из предоставленного текста и структурировать её в JSON-формате, строго следуя приведённым ниже правилам и структурам.
 
-ВАЖНО: НЕ ПРИДУМЫВАЙ И НЕ ДОБАВЛЯЙ ИНФОРМАЦИЮ, КОТОРОЙ НЕТ В ТЕКСТЕ РЕЗЮМЕ! 
-Используй только ту информацию, которая явно указана в резюме. Если какой-то информации нет - указывай null или пустые значения.
+**ЗОЛОТОЕ ПРАВИЛО: НИКАКИХ ДОМЫСЛОВ И ЛИШНЕЙ ИНФОРМАЦИИ!**
+Если в тексте резюме нет какой-либо информации, значение соответствующего поля в JSON должно быть `null` или пустым (`{{}}`). Не придумывай данные.
 
-Вот текст резюме:
+---
+**КЛЮЧЕВЫЕ ПРАВИЛА СОПОСТАВЛЕНИЯ ДАННЫХ:**
+
+1.  **СТРОГОЕ СООТВЕТСТВИЕ СЛОВАРЯМ:** Для полей, представляющих собой словари с boolean-значениями (например, `grade`, `programmingLanguages`, `frameworks`, `technologies` и т.д.), ты должен действовать как нормализатор:
+    * Найди в тексте резюме упоминание навыка, роли или характеристики (например, "питон", "Джанго", "мидл").
+    * Сопоставь найденное значение с одним из **КАНОНИЧЕСКИХ** значений, перечисленных ниже.
+    * В итоговый JSON включи **ТОЛЬКО** ключ из канонического списка.
+    * **ЕСЛИ** в резюме указан навык, которого нет в соответствующем списке канонических значений, **ПРОСТО ИГНОРИРУЙ ЕГО**. Не добавляй в JSON ключ, которого нет в списке.
+    * **ПЕРЕВОД ИМЕН И ГЕОГРАФИИ:**
+        * ФИО (firstName, lastName, patronymic): Если в тексте найдено имя на одном языке (например, "Иван"), автоматически переведи его на другой ("Ivan") и заполни оба поля в словаре ({"ru": "Иван", "en": "Ivan"}).
+        * Страна и Город (location, city): Реализуй аналогичную логику. При нахождении "Россия", поле location должно стать {"ru": "Россия", "en": "Russia"}. При нахождении "Moscow", поле city должно стать {"ru": "Москва", "en": "Moscow"}.
+
+2.  **СПИСКИ ДОПУСТИМЫХ ЗНАЧЕНИЙ (КАНОНИЧЕСКИЕ ЗНАЧЕНИЯ):**
+    * **Грейды (`grade`):** {grade_values}
+    * **Должности/Специализации (`specialization`):** {roles_values}
+    * **Языки программирования (`programmingLanguages`):** {prog_lang_values}
+    * **Фреймворки (`frameworks`):** {frameworks_values}
+    * **Технологии (`technologies`):** {tech_values}
+    * **Отрасли (`projectIndustries`):** {industries_values}
+    * **Иностранные языки (`languages`):** {lang_values}
+    * **Портфолио (`portfolio`):** {portfolio_values}
+    * **Формат работы (`workTime`):** {work_time_values}
+    * **Форма трудоустройства (`workForm`):** {work_form_values}
+    * **Доступность (`availability`):** {availability_values}
+
+---
+**ТЕКСТ РЕЗЮМЕ ДЛЯ АНАЛИЗА:**
 {text}
 {file_info}
-Извлеки следующие поля:
+---
+
+**СТРУКТУРА JSON ДЛЯ ЗАПОЛНЕНИЯ:**
 
 **ОСНОВНАЯ ИНФОРМАЦИЯ:**
-- Специализация (основная): `specialization` (СТРОГО в формате: 'Python Developer', 'Java Developer', 'Frontend Developer', 'Backend Developer', 'DevOps Engineer', 'Data Scientist' и т.д. Используй конкретную должность с технологией/направлением БЕЗ слов 'Разработчик')
-- Имя: `firstName` (словарь с русским и английским вариантами (переведи русское в английское и наоборот): {{"На русском": "Иван", "На английском": "Ivan"}})
-- Фамилия: `lastName` (словарь с русским и английским вариантами:(переведи русское в английское и наоборот) {{"На русском": "Иванов", "На английском": "Ivanov"}})
-- Отчество: `patronymic` (словарь с русским и английским вариантами: (переведи русское в английское и наоборот){{"На русском": "Иванович", "На английском": "Ivanovich"}})
-- Дата рождения: `dateOfBirth` (укажи в формате: '01.01.2000')
-- Грейд: `grade` (словарь с найденными грейдами из доступных: {grade_values}. Формат: {{"Junior": true, "Middle": false, "Senior": true}})
-- Общий опыт в IT: `totalExperience` (укажи в годах)
-- Спец опыт в IT: `specialExperience` (СТРОГО в формате: 'Python Developer - 5 лет', 'Java Developer - 3 года', 'DevOps Engineer - 2 года'. Найди конкретную должность и точное количество лет опыта в этой роли)
-
-- Дата выхода на новое место работы: `dateOfExit`
+- `firstName`: Словарь с русским и английским вариантами имени.
+- `lastName`: Словарь с русским и английским вариантами фамилии.
+- `patronymic`: Словарь с русским и английским вариантами отчества.
+- `dateOfBirth`: Дата рождения в формате 'ДД.ММ.ГГГГ'.
+- `grade`: Словарь, где ключи **строго** из списка {grade_values}. Пример: {{"Junior": true, "Middle": false}}.
+- `totalExperience`: Общий опыт в IT в годах.
+- `specialExperience`: Опыт в основной специализации. Формат: 'Python Developer - 5 лет'.Используй только значения из списка {roles_values}.
+- `dateOfExit`: Дата выхода на новое место работы.
 
 **ТЕХНИЧЕСКИЕ НАВЫКИ:**
-- Языки программирования: `programmingLanguages` (словарь с найденными языками из доступных: {prog_lang_values}. Формат: {{"Python": true, "JavaScript": false, "Java": true}})
-- Фреймворки: `frameworks` (словарь с найденными фреймворками из доступных: {frameworks_values}. Формат: {{"Django": true, "React": false, "Spring Boot": true}})
-- Технологии: `technologies` (словарь с найденными технологиями из доступных: {tech_values}. Формат: {{"Docker": true, "PostgreSQL": false, "AWS": true}})
-- Роли: `roles` (словарь с найденными ролями из доступных: {roles_values}. Формат: {{"Python Developer": true, "Frontend Developer": false, "Backend Developer": true}})
+- `programmingLanguages`: Словарь, где ключи **строго** из списка {prog_lang_values}.
+- `frameworks`: Словарь, где ключи **строго** из списка {frameworks_values}.
+- `technologies`: Словарь, где ключи **строго** из списка {tech_values}.
+- `specialization`: Словарь, где ключи **строго** из списка {roles_values}.
+
 
 **КОНТАКТНАЯ ИНФОРМАЦИЯ:**
-- Страна: `location`
-- Город: `city`
-- Контакты: `contacts` (словарь со всеми контактными данными: {{"phone": "+79001234567", "email": "test@example.com", "telegram": "@username", "linkedin": "https://linkedin.com/in/username", "skype": "username", "github": "https://github.com/username", "gitlab": null, "whatsapp": "+79001234567", "viber": null, "discord": "username#1234", "slack": null, "microsoftTeams": null, "zoom": null, "googleMeet": null, "facebook": null, "instagram": "@username", "twitter": "@username", "vk": "https://vk.com/username", "tiktok": null, "reddit": null, "stackoverflow": "https://stackoverflow.com/users/123456/username", "habrCareer": null}})
-- Другие портфолио: `portfolio` (словарь с найденными портфолио из доступных: {portfolio_values}. Формат: {{"GitHub": true, "LinkedIn": false, "Personal Website": true}})
+- `location`: Страна.
+- `city`: Город.
+- `contacts`: Словарь со всеми найденными контактами (phone, email, telegram, linkedin, github и т.д.).
 
-**ЯЗЫКИ И ПРОЕКТЫ:**
-- Иностранные языки: `languages` (словарь с найденными языками из доступных: {lang_values}. Формат: {{"English": "B2", "German": "A1", "Spanish": null}})
-- Отрасли проектов: `projectIndustries` (словарь с найденными отраслями из доступных: {industries_values}. Формат: {{"FinTech": true, "Healthcare": false, "E-commerce": true}})
+**ПРОЧЕЕ:**
+- `portfolio`: Словарь, где ключи **строго** из списка {portfolio_values}.
+- `languages`: Словарь с иностранными языками и их уровнем. Ключи **строго** из списка {lang_values}.
+- `projectIndustries`: Словарь, где ключи **строго** из списка {industries_values}.
 
 **УСЛОВИЯ РАБОТЫ:**
-- Доступность: `availability` (словарь с найденной доступностью из доступных: {availability_values}. Формат: {{"Open to offers": true, "Not looking": false, "Considering offers": true}})
-- Формат работы: `workTime` (словарь с найденными форматами из доступных: {work_time_values}. Формат: {{"Full-time": true, "Part-time": false, "Contract": true}})
-- Форма трудоустройства: `workForm` (словарь с найденными формами из доступных: {work_form_values}. Формат: {{"Оформление в штат": true, "B2B contract": false, "Самозанятый": true}})
-- Зарплатные ожидания: `salaryExpectations` (словарь с суммой и валютой: {{"amount": "150000", "currency": "RUB"}} или {{"amount": "1100", "currency": "USD"}}. Валюты ТОЛЬКО: RUB (рубли, руб), USD (доллары, $, у.е.), EUR (евро, €), BYN (белорусские рубли). ВАЖНО: у.е. всегда означает USD. Валюту всегда пиши ЗАГЛАВНЫМИ буквами. Если не найдено в тексте резюме, обязательно проверь название файла - там могут быть указаны зарплатные ожидания в виде чисел. ВАЖНО: если в названии файла есть числа типа "от 200_000", "200000", "2500" и т.д., то считай это зарплатными ожиданиями в RUB)
-- Рейт (руб): `rateRub`
-
-Если какое-либо поле отсутствует в резюме, используй значение `null` для строк или пустой словарь `{{}}` для словарей.
-
+- `availability`: Словарь, где ключи **строго** из списка {availability_values}.
+- `workTime`: Словарь, где ключи **строго** из списка {work_time_values}.
+- `workForm`: Словарь, где ключи **строго** из списка {work_form_values}.
+- `salaryExpectations`: Словарь с суммой и валютой (`amount`, `currency`). Валюты: RUB, USD, EUR, BYN. Проверяй текст и название файла. "у.е." всегда USD. Числа в названии файла (например, "от 200000") — это зарплата в RUB.
+- `rateRub`: Рейт в рублях.
 **Пример JSON-структуры:**
 ```json
 {{
-  "specialization": "Python Developer",
-  "firstName": {{"На русском": "Иван", "На английском": "Ivan"}},
-  "lastName": {{"На русском": "Иванов", "На английском": "Ivanov"}},
-  "patronymic": {{"На русском": "Иванович", "На английском": "Ivanovich"}},
+  "specialization": {{"Python Developer": true, "Backend Developer": true}},
+  "firstName": {{"ru": "Иван", "en": "Ivan"}},
+  "lastName": {{"ru": "Иванов", "en": "Ivanov"}},
+  "patronymic": {{"ru": "Иванович", "en": "Ivanovich"}},
   "dateOfBirth": "01.01.2000",
   "grade": {{"Senior": true, "Middle": false, "Junior": false}},
   "totalExperience": "8 лет",
@@ -99,9 +123,8 @@ def process_resume(text: str, file_name: str = "") -> dict | None:
   "programmingLanguages": {{"Python": true, "JavaScript": true, "TypeScript": true}},
   "frameworks": {{"Django": true, "FastAPI": true, "React": true}},
   "technologies": {{"PostgreSQL": true, "Docker": true, "AWS": true, "Redis": true}},
-  "roles": {{"Python Developer": true, "Backend Developer": true}},
-  "location": "Россия",
-  "city": "Москва",
+  "location": {{"ru": "Россия", "en": "Russia"}},
+  "city": {{"ru": "Москва", "en": "Moscow"}},
   "contacts": {{
     "phone": "+79001234567",
     "email": "ivan.ivanov@example.com",
