@@ -105,10 +105,10 @@ async def cb_add_more_yes(callback: types.CallbackQuery, state: FSMContext):
 @scan_router.callback_query(F.data == "add_more_no")
 async def cb_add_more_no(callback: types.CallbackQuery, state: FSMContext):
     await callback.answer()
-    await start_processing(callback.message, state)
+    await start_processing(callback.message, state, callback.from_user.username)
 
 
-async def start_processing(message: types.Message, state: FSMContext):
+async def start_processing(message: types.Message, state: FSMContext, rekruter_username: str):
     folder = "downloads"
     os.makedirs(folder, exist_ok=True)
     files = os.listdir(folder)
@@ -119,7 +119,6 @@ async def start_processing(message: types.Message, state: FSMContext):
 
     await state.set_state(Scan.processing_files)
     await message.answer(f"🤖 Найдено {len(files)} резюме. Начинаю обработку...")
-    rekruter_username = message.from_user.username
     for file_name in files:
         local_file_path = os.path.join(folder, file_name)
         try:
