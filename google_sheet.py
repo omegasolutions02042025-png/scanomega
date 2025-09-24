@@ -11,11 +11,11 @@ import requests
 from gspread.utils import a1_to_rowcol, rowcol_to_a1
 from funcs import parse_cb_rf, parse_myfin
 from aiogram import Bot
-ADMIN_ID = os.getenv('ADMIN_ID')
+
 
 
 load_dotenv()
-
+ADMIN_ID = os.getenv('ADMIN_ID')
 # Настройка Google Sheets API
 SCOPES = [
     'https://www.googleapis.com/auth/spreadsheets',
@@ -1015,24 +1015,25 @@ def fill_column_with_sequential_numbers(
 import asyncio
 
 async def update_currency_sheet(bot : Bot):
+    print(ADMIN_ID)
     sheet_names = ['Расчет ставки (штат/контракт) ЕС/США', 'Расчет ставки (штат/контракт) СНГ','Расчет ставки (Самозанятый) СНГ','Расчет ставки (Самозанятый) ЕС/США','Расчет ставки (ИП) СНГ','Расчет ставки (ИП) ЕС/США']
     curses = parse_cb_rf()
     zp = parse_myfin()
     while True:
+        usd = curses["USD"]
+        eur = curses["EUR"]
+        byn = curses["BYN"]
         for sheet_name in sheet_names:
             for i in curses:
                 
                 if i == "USD":
-                    fill_column_with_sequential_numbers("H", sheet_name, 2, curses[i])
-                    usd = curses[i]
+                    fill_column_with_sequential_numbers("H", sheet_name, 2, usd)
                     await asyncio.sleep(3)
                 elif i == "EUR":
-                    fill_column_with_sequential_numbers("I", sheet_name, 2, curses[i])
-                    eur = curses[i]
+                    fill_column_with_sequential_numbers("I", sheet_name, 2, eur)
                     await asyncio.sleep(3)
                 elif i == "BYN":
-                    fill_column_with_sequential_numbers("G", sheet_name, 2, curses[i])
-                    byn = curses[i]
+                    fill_column_with_sequential_numbers("G", sheet_name, 2, byn)
                     await asyncio.sleep(3)
             fill_column_with_sequential_numbers("J", sheet_name, 2, zp)
             await asyncio.sleep(3)
