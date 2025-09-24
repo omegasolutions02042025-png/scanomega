@@ -1016,19 +1016,21 @@ async def update_currency_sheet():
     sheet_names = ['Расчет ставки (штат/контракт) ЕС/США', 'Расчет ставки (штат/контракт) СНГ','Расчет ставки (Самозанятый) СНГ','Расчет ставки (Самозанятый) ЕС/США','Расчет ставки (ИП) СНГ','Расчет ставки (ИП) ЕС/США']
     curses = parse_cb_rf()
     zp = parse_myfin()
-    for sheet_name in sheet_names:
-        for i in curses:
-            
-            if i == "USD":
-                fill_column_with_sequential_numbers("H", sheet_name, 2, curses[i])
-                await asyncio.sleep(3)
-            elif i == "EUR":
-                fill_column_with_sequential_numbers("I", sheet_name, 2, curses[i])
-                await asyncio.sleep(3)
-            elif i == "BYN":
-                fill_column_with_sequential_numbers("G", sheet_name, 2, curses[i])
-                await asyncio.sleep(3)
-        fill_column_with_sequential_numbers("J", sheet_name, 2, zp)
-        await asyncio.sleep(3)
-    await asyncio.sleep(30)
+    while True:
+        for sheet_name in sheet_names:
+            for i in curses:
+                
+                if i == "USD":
+                    fill_column_with_sequential_numbers("H", sheet_name, 2, curses[i])
+                    await asyncio.sleep(3)
+                elif i == "EUR":
+                    fill_column_with_sequential_numbers("I", sheet_name, 2, curses[i])
+                    await asyncio.sleep(3)
+                elif i == "BYN":
+                    fill_column_with_sequential_numbers("G", sheet_name, 2, curses[i])
+                    await asyncio.sleep(3)
+            fill_column_with_sequential_numbers("J", sheet_name, 2, zp)
+            await asyncio.sleep(3)
+        print("✅ Успешно обновлено")
+        await asyncio.sleep(30)
     

@@ -12,6 +12,7 @@ from google_sheet import update_currency_sheet
 load_dotenv()
 token = os.getenv('BOT_TOKEN')
 PHONE_NUMBER = os.getenv('PHONE_NUMBER')
+ADMIN_ID = os.getenv('ADMIN_ID')
 
 
 bot = Bot(token=token)
